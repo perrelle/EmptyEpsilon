@@ -41,32 +41,18 @@ bool GuiBasicSlider::onMouseDown(sp::io::Pointer::Button button, glm::vec2 posit
 
 void GuiBasicSlider::onMouseDrag(glm::vec2 position, sp::io::Pointer::ID id)
 {
+    float old_value = this->value;
     float new_value;
     if (rect.size.x > rect.size.y)
         new_value = (position.x - rect.position.x - (rect.size.y / 2.0f)) / (rect.size.x - rect.size.y);
     else
         new_value = (position.y - rect.position.y - (rect.size.x / 2.0f)) / (rect.size.y - rect.size.x);
     new_value = min_value + (max_value - min_value) * new_value;
-    if (min_value < max_value)
+    setValue(new_value);
+    if (this->value != old_value && func)
     {
-        if (new_value < min_value)
-            new_value = min_value;
-        if (new_value > max_value)
-            new_value = max_value;
-    }else{
-        if (new_value > min_value)
-            new_value = min_value;
-        if (new_value < max_value)
-            new_value = max_value;
-    }
-    if (value != new_value)
-    {
-        value = new_value;
-        if (func)
-        {
-            func_t f = func;
-            f(value);
-        }
+        func_t f = func;
+        f(value);
     }
 }
 
@@ -162,42 +148,34 @@ bool GuiSlider::onMouseDown(sp::io::Pointer::Button button, glm::vec2 position, 
 
 void GuiSlider::onMouseDrag(glm::vec2 position, sp::io::Pointer::ID id)
 {
+    float old_value = this->value;
     float new_value;
     if (rect.size.x > rect.size.y)
         new_value = (position.x - rect.position.x - (rect.size.y / 2.0f)) / (rect.size.x - rect.size.y);
     else
         new_value = (position.y - rect.position.y - (rect.size.x / 2.0f)) / (rect.size.y - rect.size.x);
     new_value = min_value + (max_value - min_value) * new_value;
-    for(TSnapPoint& point : snap_points)
+    setValueSnapped(new_value);
+    if (this->value != old_value && func)
     {
-        if (fabs(new_value - point.value) < point.range)
-            new_value = point.value;
-    }
-    if (min_value < max_value)
-    {
-        if (new_value < min_value)
-            new_value = min_value;
-        if (new_value > max_value)
-            new_value = max_value;
-    }else{
-        if (new_value > min_value)
-            new_value = min_value;
-        if (new_value < max_value)
-            new_value = max_value;
-    }
-    if (value != new_value)
-    {
-        value = new_value;
-        if (func)
-        {
-            func_t f = func;
-            f(value);
-        }
+        func_t f = func;
+        f(value);
     }
 }
 
 void GuiSlider::onMouseUp(glm::vec2 position, sp::io::Pointer::ID id)
 {
+}
+
+GuiSlider* GuiSlider::setValueSnapped(float value)
+{
+    for(TSnapPoint& point : snap_points)
+    {
+        if (fabs(value - point.value) < point.range)
+            value = point.value;
+    }
+    setValue(value);
+    return this;
 }
 
 GuiSlider* GuiSlider::clearSnapValues()
@@ -253,6 +231,7 @@ bool GuiSlider2D::onMouseDown(sp::io::Pointer::Button button, glm::vec2 position
 
 void GuiSlider2D::onMouseDrag(glm::vec2 position, sp::io::Pointer::ID id)
 {
+    glm::vec2 old_value = this->value;
     glm::vec2 new_value;
     new_value.x = (position.x - rect.position.x - 25.0f) / (rect.size.x - 50.0f);
     new_value.y = (position.y - rect.position.y - 25.0f) / (rect.size.y - 50.0f);
@@ -263,31 +242,8 @@ void GuiSlider2D::onMouseDrag(glm::vec2 position, sp::io::Pointer::ID id)
         if (fabs(new_value.x - point.value.x) < point.range.x && fabs(new_value.y - point.value.y) < point.range.y)
             new_value = point.value;
     }
-    if (min_value.x < max_value.x)
-    {
-        if (new_value.x < min_value.x)
-            new_value.x = min_value.x;
-        if (new_value.x > max_value.x)
-            new_value.x = max_value.x;
-    }else{
-        if (new_value.x > min_value.x)
-            new_value.x = min_value.x;
-        if (new_value.x < max_value.x)
-            new_value.x = max_value.x;
-    }
-    if (min_value.y < max_value.y)
-    {
-        if (new_value.y < min_value.y)
-            new_value.y = min_value.y;
-        if (new_value.y > max_value.y)
-            new_value.y = max_value.y;
-    }else{
-        if (new_value.y > min_value.y)
-            new_value.y = min_value.y;
-        if (new_value.y < max_value.y)
-            new_value.y = max_value.y;
-    }
-    if (value != new_value)
+    setValue(new_value);
+    if (this->value != old_value)
     {
         value = new_value;
         if (func)
