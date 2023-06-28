@@ -39,10 +39,12 @@ protected:
     {
         float value;
         float range;
+        const GuiThemeStyle* style;
     };
     std::vector<TSnapPoint> snap_points;
     GuiLabel* overlay_label;
-    const GuiThemeStyle* tick_style;
+    const GuiThemeStyle* major_tick_style;
+    const GuiThemeStyle* minor_tick_style;
 public:
     GuiSlider(GuiContainer* owner, string id, float min_value, float max_value, float start_value, func_t func);
 
@@ -54,6 +56,7 @@ public:
     GuiSlider* setValueSnapped(float value);
     GuiSlider* clearSnapValues();
     GuiSlider* addSnapValue(float value, float range);
+    GuiSlider* addSnapGrid(float center, float step, int subdivisions, float major_range, float minor_range);
     GuiSlider* addOverlay();
 };
 

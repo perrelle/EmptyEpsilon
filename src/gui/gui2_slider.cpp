@@ -97,13 +97,13 @@ GuiSlider::GuiSlider(GuiContainer* owner, string id, float min_value, float max_
 : GuiBasicSlider(owner, id, min_value, max_value, start_value, func)
 {
     overlay_label = nullptr;
-    tick_style = theme->getStyle("slider.tick");
+    major_tick_style = theme->getStyle("slider.tick");
+    minor_tick_style = theme->getStyle("slider.minor-tick");
 }
 
 void GuiSlider::onDraw(sp::RenderTarget& renderer)
 {
     const auto& back = back_style->get(getState());
-    const auto& tick = tick_style->get(getState());
     const auto& front = front_style->get(getState());
 
     renderer.drawStretched(rect, back.texture, back.color);
@@ -114,9 +114,11 @@ void GuiSlider::onDraw(sp::RenderTarget& renderer)
 
         for(TSnapPoint& point : snap_points)
         {
+            const auto& tick = point.style->get(getState());
+
             x = rect.position.x + (rect.size.x - rect.size.y) * (point.value - min_value) / (max_value - min_value);
 
-            renderer.drawRotatedSprite(tick.texture, glm::vec2(x + rect.size.y * 0.5f, rect.position.y + rect.size.y * 0.5f), rect.size.y, 90, tick.color);
+            renderer.drawRotatedSprite(tick.texture, glm::vec2(x + rect.size.y * 0.5f, rect.position.y + rect.size.y * 0.5f), rect.size.y, 90, tick.color );
         }
         x = rect.position.x + (rect.size.x - rect.size.y) * (value - min_value) / (max_value - min_value);
 
@@ -125,6 +127,8 @@ void GuiSlider::onDraw(sp::RenderTarget& renderer)
         float y;
         for(TSnapPoint& point : snap_points)
         {
+            const auto& tick = point.style->get(getState());
+
             y = rect.position.y + (rect.size.y - rect.size.x) * (point.value - min_value) / (max_value - min_value);
 
             renderer.drawSprite(tick.texture, glm::vec2(rect.position.x + rect.size.x * 0.5f, y + rect.size.x * 0.5f), rect.size.x, tick.color);
@@ -189,6 +193,40 @@ GuiSlider* GuiSlider::addSnapValue(float value, float range)
     snap_points.emplace_back();
     snap_points.back().value = value;
     snap_points.back().range = range;
+    snap_points.back().style = major_tick_style;
+
+    return this;
+}
+
+GuiSlider* GuiSlider::addSnapGrid(float center, float step, int subdivisions, float major_range, float minor_range)
+{
+    // Starting index of major ticks
+    int min = std::min(min_value, max_value);
+    int max = std::max(min_value, max_value);
+    int i = std::floor((min - center) / step);
+    float snap_value;
+
+    do
+    {
+        snap_value = center + i * step;
+        if (snap_value >= min && snap_value <= max)
+            addSnapValue(snap_value, major_range);
+
+        // Minor ticks
+        for (int j = 1 ; j < subdivisions ; j++)
+        {
+            snap_value += step / subdivisions;
+            if (snap_value >= min && snap_value <= max)
+            {
+                addSnapValue(snap_value, minor_range);
+                snap_points.back().style = minor_tick_style;
+            }
+        }
+
+        i++;
+    }
+    while (snap_value < std::max(min_value, max_value));
+
     return this;
 }
 

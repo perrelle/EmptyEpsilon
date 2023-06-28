@@ -63,6 +63,11 @@
         }
         [slider.tick] {
             image: gui/widget/SliderTick.png
+            color: #FFFFFF
+        }
+        [slider.minor-tick] {
+            image: gui/widget/SliderTick.png
+            color: #808080
         }
         [slider.front] {
             image: gui/widget/SliderKnob.png
